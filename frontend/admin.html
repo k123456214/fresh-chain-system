@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生鲜称重连锁系统 - 后台管理</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background: #f0f2f5; }
+        .login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); width: 380px; }
+        .login-box h1 { text-align: center; color: #333; margin-bottom: 8px; font-size: 22px; }
+        .login-box .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 14px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; color: #555; font-size: 14px; font-weight: 500; }
+        .form-group input { width: 100%; padding: 12px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; transition: all 0.3s; }
+        .form-group input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+        .btn-primary { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 500; cursor: pointer; transition: all 0.3s; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(102,126,234,0.3); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+        .error-msg { color: #e74c3c; text-align: center; margin-top: 15px; font-size: 14px; }
+        
+        .admin-layout { display: none; min-height: 100vh; }
+        .sidebar { width: 240px; background: #1f2937; color: white; position: fixed; height: 100vh; overflow-y: auto; }
+        .sidebar-header { padding: 24px 20px; border-bottom: 1px solid #374151; }
+        .sidebar-header h2 { font-size: 18px; color: #f9fafb; }
+        .sidebar-header p { font-size: 12px; color: #9ca3af; margin-top: 4px; }
+        .sidebar-menu { padding: 16px 0; }
+        .menu-item { padding: 12px 20px; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: all 0.2s; border-left: 3px solid transparent; }
+        .menu-item:hover { background: #374151; }
+        .menu-item.active { background: #4f46e5; border-left-color: #818cf8; }
+        .menu-item .icon { font-size: 18px; }
+        .menu-item span { font-size: 14px; }
+        
+        .main-content { margin-left: 240px; min-height: 100vh; }
+        .top-bar { background: white; padding: 16px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .top-bar h1 { font-size: 20px; color: #1f2937; }
+        .user-info { display: flex; align-items: center; gap: 16px; }
+        .user-info span { color: #6b7280; font-size: 14px; }
+        .btn-logout { padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; }
+        .btn-logout:hover { background: #dc2626; }
+        
+        .content-area { padding: 24px; }
+        .page { display: none; }
+        .page.active { display: block; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 24px; }
+        .stat-card { background: white; padding: 24px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .stat-card .label { color: #6b7280; font-size: 13px; margin-bottom: 8px; }
+        .stat-card .value { font-size: 28px; font-weight: 600; color: #1f2937; }
+        .stat-card .change { color: #10b981; font-size: 12px; margin-top: 4px; }
+        .stat-card.warning .value { color: #f59e0b; }
+        .stat-card.danger .value { color: #ef4444; }
+        
+        .card { background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; }
+        .card-header { padding: 20px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; }
+        .card-header h3 { font-size: 16px; color: #1f2937; }
+        .card-body { padding: 20px; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        table th { background: #f9fafb; padding: 12px 16px; text-align: left; font-size: 13px; color: #6b7280; font-weight: 500; }
+        table td { padding: 12px 16px; border-bottom: 1px solid #f3f4f6; font-size: 14px; color: #374151; }
+        table tr:hover { background: #f9fafb; }
+        
+        .btn { padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
+        .btn-edit { background: #3b82f6; color: white; }
+        .btn-edit:hover { background: #2563eb; }
+        .btn-delete { background: #ef4444; color: white; }
+        .btn-delete:hover { background: #dc2626; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-add { background: #4f46e5; color: white; }
+        .btn-add:hover { background: #4338ca; }
+        
+        .toolbar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+        .toolbar input, .toolbar select { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
+        .toolbar input:focus, .toolbar select:focus { outline: none; border-color: #4f46e5; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.show { display: flex; }
+        .modal-content { background: white; border-radius: 12px; width: 500px; max-width: 90vw; max-height: 85vh; overflow-y: auto; }
+        .modal-header { padding: 20px; border-bottom: 1px solid #f3f4f6; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { font-size: 18px; color: #1f2937; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #9ca3af; }
+        .modal-body { padding: 20px; }
+        .modal-footer { padding: 20px; border-top: 1px solid #f3f4f6; display: flex; justify-content: flex-end; gap: 12px; }
+        
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .form-full { margin-bottom: 16px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+        
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+        
+        .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 20px; }
+        .pagination button { padding: 6px 12px; border: 1px solid #d1d5db; background: white; border-radius: 6px; cursor: pointer; }
+        .pagination button.active { background: #4f46e5; color: white; border-color: #4f46e5; }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .api-config { background: #f3f4f6; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; color: #6b7280; }
+        .api-config code { background: #e5e7eb; padding: 2px 6px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="login-page" id="loginPage">
+    <div class="login-box">
+        <h1>🥬 生鲜称重连锁系统</h1>
+        <p class="subtitle">后台管理系统</p>
+        <div class="form-group">
+            <label>用户名</label>
+            <input type="text" id="username" placeholder="请输入用户名" value="admin">
+        </div>
+        <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="password" placeholder="请输入密码" value="admin123">
+        </div>
+        <button class="btn-primary" onclick="login()">登录</button>
+        <p class="error-msg" id="errorMsg"></p>
+    </div>
+</div>
+
+<div class="admin-layout" id="adminLayout">
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>🥬 生鲜连锁</h2>
+            <p>后台管理系统</p>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-item active" onclick="showPage('dashboard')">
+                <span class="icon">📊</span><span>数据概览</span>
+            </div>
+            <div class="menu-item" onclick="showPage('stores')">
+                <span class="icon">🏪</span><span>门店管理</span>
+            </div>
+            <div class="menu-item" onclick="showPage('products')">
+                <span class="icon">📦</span><span>商品管理</span>
+            </div>
+            <div class="menu-item" onclick="showPage('inventory')">
+                <span class="icon">📋</span><span>库存管理</span>
+            </div>
+            <div class="menu-item" onclick="showPage('orders')">
+                <span class="icon">🛒</span><span>订单管理</span>
+            </div>
+            <div class="menu-item" onclick="showPage('members')">
+                <span class="icon">👥</span><span>会员管理</span>
+            </div>
+            <div class="menu-item" onclick="showPage('suppliers')">
+                <span class="icon">🚚</span><span>供应商管理</span>
+            </div>
+            <div class="menu-item" onclick="showPage('employees')">
+                <span class="icon">👤</span><span>员工管理</span>
+            </div>
+            <div class="menu-item" onclick="showPage('marketing')">
+                <span class="icon">🎯</span><span>营销管理</span>
+            </div>
+            <div class="menu-item" onclick="showPage('loss')">
+                <span class="icon">📉</span><span>损耗管理</span>
+            </div>
+            <div class="menu-item" onclick="showPage('traceability')">
+                <span class="icon">🔍</span><span>溯源管理</span>
+            </div>
+            <div class="menu-item" onclick="showPage('users')">
+                <span class="icon">⚙️</span><span>系统管理</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="top-bar">
+            <h1 id="pageTitle">数据概览</h1>
+            <div class="user-info">
+                <span>欢迎，<span id="userName"></span></span>
+                <button class="btn-logout" onclick="logout()">退出</button>
+            </div>
+        </div>
+        
+        <div class="content-area">
+            <div class="api-config">
+                API地址: <code id="apiUrl">http://localhost:8000</code>
+            </div>
+            
+            <div class="page active" id="page-dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="label">今日订单数</div>
+                        <div class="value" id="todayOrders">0</div>
+                        <div class="change">↑ 较昨日</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">今日销售额</div>
+                        <div class="value" id="todaySales">¥0</div>
+                        <div class="change">↑ 较昨日</div>
+                    </div>
+                    <div class="stat-card warning">
+                        <div class="label">库存预警商品</div>
+                        <div class="value" id="lowStockCount">0</div>
+                        <div class="change">需及时补货</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">会员总数</div>
+                        <div class="value" id="memberCount">0</div>
+                        <div class="change">持续增长</div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header"><h3>最近订单</h3></div>
+                    <div class="card-body">
+                        <table id="recentOrdersTable">
+                            <thead>
+                                <tr><th>订单号</th><th>门店</th><th>金额</th><th>支付方式</th><th>状态</th><th>时间</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page" id="page-stores">
+                <div class="toolbar">
+                    <input type="text" id="storeSearch" placeholder="搜索门店..." oninput="loadStores()">
+                    <button class="btn btn-add" onclick="openStoreModal()">+ 新增门店</button>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <table id="storesTable">
+                            <thead>
+                                <tr><th>编号</th><th>名称</th><th>地址</th><th>电话</th><th>经理</th><th>面积</th><th>状态</th><th>操作</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page" id="page-products">
+                <div class="toolbar">
+                    <input type="text" id="productSearch" placeholder="搜索商品名称/条码..." oninput="loadProducts()">
+                    <select id="productCategory" onchange="loadProducts()">
+                        <option value="">全部分类</option>
+                    </select>
+                    <button class="btn btn-add" onclick="openProductModal()">+ 新增商品</button>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <table id="productsTable">
+                            <thead>
+                                <tr><th>编码</th><th>名称</th><th>分类</th><th>单价</th><th>成本价</th><th>库存</th><th>状态</th><th>操作</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page" id="page-inventory">
+                <div class="toolbar">
+                    <select id="inventoryStore" onchange="loadInventory()">
+                        <option value="">全部门店</option>
+                    </select>
+                    <button class="btn btn-success" onclick="loadLowStock()">库存预警</button>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <table id="inventoryTable">
+                            <thead>
+                                <tr><th>商品</th><th>门店</th><th>库存数量</th><th>预警数量</th><th>最后更新</th><th>操作</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page" id="page-orders">
+                <div class="toolbar">
+                    <select id="orderStore" onchange="loadOrders()">
+                        <option value="">全部门店</option>
+                    </select>
+                    <select id="orderStatus" onchange="loadOrders()">
+                        <option value="">全部状态</option>
+                        <option value="pending">待处理</option>
+                        <option value="completed">已完成</option>
+                        <option value="cancelled">已取消</option>
+                    </select>
+                    <button class="btn btn-success" onclick="loadOrders()">刷新</button>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <table id="ordersTable">
+                            <thead>
+                                <tr><th>订单号</th><th>门店</th><th>金额</th><th>支付方式</th><th>状态</th><th>时间</th><th>操作</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page" id="page-members">
+                <div class="toolbar">
+                    <input type="text" id="memberSearch" placeholder="搜索会员姓名/手机号..." oninput="loadMembers()">
+                    <button class="btn btn-add" onclick="openMemberModal()">+ 新增会员</button>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <table id="membersTable">
+                            <thead>
+                                <tr><th>会员号</th><th>姓名</th><th>手机号</th><th>等级</th><th>积分</th><th>余额</th><th>累计消费</th><th>操作</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page" id="page-suppliers">
+                <div class="toolbar">
+                    <input type="text" id="supplierSearch" placeholder="搜索供应商..." oninput="loadSuppliers()">
+                    <button class="btn btn-add" onclick="openSupplierModal()">+ 新增供应商</button>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <table id="suppliersTable">
+                            <thead>
+                                <tr><th>名称</th><th>联系人</th><th>电话</th><th>地址</th><th>供应品类</th><th>状态</th><th>操作</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page" id="page-employees">
+                <div class="toolbar">
+                    <input type="text" id="employeeSearch" placeholder="搜索员工..." oninput="loadEmployees()">
+                    <select id="employeeStore" onchange="loadEmployees()">
+                        <option value="">全部门店</option>
+                    </select>
+                    <button class="btn btn-add" onclick="openEmployeeModal()">+ 新增员工</button>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <table id="employeesTable">
+                            <thead>
+                                <tr><th>姓名</th><th>电话</th><th>职位</th><th>部门</th><th>门店</th><th>入职日期</th><th>操作</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page" id="page-marketing">
+                <div class="toolbar">
+                    <button class="btn btn-add" onclick="openPromotionModal()">+ 新增促销</button>
+                    <button class="btn btn-success" onclick="openCouponModal()">+ 新增优惠券</button>
+                </div>
+                <div class="form-row">
+                    <div class="card" style="grid-column: span 1;">
+                        <div class="card-header"><h3>促销活动</h3></div>
+                        <div class="card-body">
+                            <table id="promotionsTable">
+                                <thead><tr><th>名称</th><th>类型</th><th>折扣</th><th>有效期</th><th>状态</th><th>操作</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card" style="grid-column: span 1;">
+                        <div class="card-header"><h3>优惠券</h3></div>
+                        <div class="card-body">
+                            <table id="couponsTable">
+                                <thead><tr><th>名称</th><th>类型</th><th>面值</th><th>使用条件</th><th>已发/总数</th><th>状态</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page" id="page-loss">
+                <div class="toolbar">
+                    <select id="lossStore" onchange="loadLossRecords()">
+                        <option value="">全部门店</option>
+                    </select>
+                    <button class="btn btn-add" onclick="openLossModal()">+ 新增损耗记录</button>
+                    <button class="btn btn-success" onclick="showLossStats()">损耗统计</button>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <table id="lossTable">
+                            <thead>
+                                <tr><th>商品</th><th>门店</th><th>数量</th><th>原因</th><th>金额</th><th>操作员</th><th>时间</th><th>操作</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page" id="page-traceability">
+                <div class="toolbar">
+                    <input type="text" id="traceSearch" placeholder="搜索批次号/商品..." oninput="loadTraceability()">
+                    <button class="btn btn-add" onclick="openTraceModal()">+ 新增溯源记录</button>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <table id="traceTable">
+                            <thead>
+                                <tr><th>商品</th><th>批次号</th><th>产地</th><th>供应商</th><th>采收日期</th><th>到货日期</th><th>状态</th><th>操作</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="page" id="page-users">
+                <div class="toolbar">
+                    <button class="btn btn-add" onclick="openUserModal()">+ 新增用户</button>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <table id="usersTable">
+                            <thead>
+                                <tr><th>用户名</th><th>姓名</th><th>电话</th><th>角色</th><th>门店</th><th>状态</th><th>操作</th></tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">新增</h3>
+            <button class="close-btn" onclick="closeModal()">×</button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+        <div class="modal-footer">
+            <button class="btn" onclick="closeModal()">取消</button>
+            <button class="btn btn-primary" style="background:#4f46e5;color:white;padding:8px 20px;border:none;border-radius:6px;cursor:pointer;" onclick="saveModal()">保存</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const API_BASE = window.location.origin;
+let authToken = localStorage.getItem('token');
+let currentPage = 'dashboard';
+let editingId = null;
+let modalConfig = null;
+
+async function api(method, path, data = null) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (authToken) headers['Authorization'] = 'Bearer ' + authToken;
+    const res = await fetch(API_BASE + path, {
+        method,
+        headers,
+        body: data ? JSON.stringify(data) : null
+    });
+    if (res.status === 401) {
+        logout();
+        return null;
+    }
+    return res.json();
+}
+
+async function login() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const errMsg = document.getElementById('errorMsg');
+    
+    try {
+        const res = await fetch(API_BASE + '/api/v1/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            authToken = data.access_token;
+            localStorage.setItem('token', authToken);
+            localStorage.setItem('userInfo', JSON.stringify(data.user));
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('adminLayout').style.display = 'block';
+            document.getElementById('userName').textContent = data.user.real_name || data.user.username;
+            initDashboard();
+        } else {
+            errMsg.textContent = '用户名或密码错误';
+        }
+    } catch (e) {
+        errMsg.textContent = '登录失败：' + e.message;
+    }
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('userInfo');
+    authToken = null;
+    document.getElementById('loginPage').style.display = 'flex';
+    document.getElementById('adminLayout').style.display = 'none';
+}
+
+function showPage(page) {
+    currentPage = page;
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    event.currentTarget.classList.add('active');
+    
+    const titles = {
+        dashboard: '数据概览', stores: '门店管理', products: '商品管理',
+        inventory: '库存管理', orders: '订单管理', members: '会员管理',
+        suppliers: '供应商管理', employees: '员工管理', marketing: '营销管理',
+        loss: '损耗管理', traceability: '溯源管理', users: '系统管理'
+    };
+    document.getElementById('pageTitle').textContent = titles[page] || page;
+    
+    loadPageData(page);
+}
+
+function loadPageData(page) {
+    switch(page) {
+        case 'dashboard': initDashboard(); break;
+        case 'stores': loadStores(); break;
+        case 'products': loadProducts(); break;
+        case 'inventory': loadInventory(); break;
+        case 'orders': loadOrders(); break;
+        case 'members': loadMembers(); break;
+        case 'suppliers': loadSuppliers(); break;
+        case 'employees': loadEmployees(); break;
+        case 'marketing': loadMarketing(); break;
+        case 'loss': loadLossRecords(); break;
+        case 'traceability': loadTraceability(); break;
+        case 'users': loadUsers(); break;
+    }
+}
+
+async function initDashboard() {
+    const stats = await api('GET', '/api/v1/orders/stats/daily');
+    if (stats) {
+        document.getElementById('todayOrders').textContent = stats.order_count || 0;
+        document.getElementById('todaySales').textContent = '¥' + (stats.total_amount || 0).toFixed(2);
+    }
+    
+    const lowStock = await api('GET', '/api/v1/inventory/low-stock');
+    if (lowStock) document.getElementById('lowStockCount').textContent = lowStock.length;
+    
+    const members = await api('GET', '/api/v1/members/?skip=0&limit=1');
+    const allMembers = await api('GET', '/api/v1/members/?skip=0&limit=500');
+    if (allMembers) document.getElementById('memberCount').textContent = allMembers.length;
+    
+    const orders = await api('GET', '/api/v1/orders/?skip=0&limit=10');
+    if (orders) {
+        const tbody = document.querySelector('#recentOrdersTable tbody');
+        tbody.innerHTML = orders.map(o => `
+            <tr>
+                <td>${o.order_no}</td>
+                <td>门店#${o.store_id}</td>
+                <td>¥${o.final_amount.toFixed(2)}</td>
+                <td>${o.pay_method}</td>
+                <td><span class="badge ${o.status === 'completed' ? 'badge-success' : 'badge-warning'}">${o.status}</span></td>
+                <td>${new Date(o.created_at).toLocaleString('zh-CN')}</td>
+            </tr>
+        `).join('') || '<tr><td colspan="6" style="text-align:center;color:#9ca3af">暂无数据</td></tr>';
+    }
+}
+
+async function loadStores() {
+    const keyword = document.getElementById('storeSearch')?.value || '';
+    const stores = await api('GET', '/api/v1/stores/?skip=0&limit=500');
+    if (stores) {
+        const filtered = keyword ? stores.filter(s => s.name.includes(keyword) || s.code.includes(keyword)) : stores;
+        const tbody = document.querySelector('#storesTable tbody');
+        tbody.innerHTML = filtered.map(s => `
+            <tr>
+                <td>${s.code}</td><td>${s.name}</td><td>${s.address || '-'}</td>
+                <td>${s.phone || '-'}</td><td>${s.manager || '-'}</td>
+                <td>${s.area || 0}㎡</td>
+                <td><span class="badge ${s.status ? 'badge-success' : 'badge-danger'}">${s.status ? '营业中' : '已关闭'}</span></td>
+                <td><button class="btn btn-sm btn-edit" onclick="openStoreModal(${s.id})">编辑</button>
+                <button class="btn btn-sm btn-delete" onclick="deleteItem('stores', ${s.id})">删除</button></td>
+            </tr>
+        `).join('') || '<tr><td colspan="8" style="text-align:center;color:#9ca3af">暂无数据</td></tr>';
+    }
+}
+
+async function loadProducts() {
+    const keyword = document.getElementById('productSearch')?.value || '';
+    const category = document.getElementById('productCategory')?.value || '';
+    const products = await api('GET', `/api/v1/products/?skip=0&limit=500&keyword=${keyword}&category=${category}`);
+    const categories = await api('GET', '/api/v1/products/categories');
+    
+    if (categories && document.getElementById('productCategory').options.length <= 1) {
+        categories.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c; opt.textContent = c;
+            document.getElementById('productCategory').appendChild(opt);
+        });
+    }
+    
+    if (products) {
+        const tbody = document.querySelector('#productsTable tbody');
+        tbody.innerHTML = products.map(p => `
+            <tr>
+                <td>${p.code}</td><td>${p.name}</td><td>${p.category || '-'}</td>
+                <td>¥${p.price.toFixed(2)}</td><td>¥${p.cost_price.toFixed(2)}</td>
+                <td>${p.stock} ${p.unit}</td>
+                <td><span class="badge ${p.status ? 'badge-success' : 'badge-danger'}">${p.status ? '在售' : '下架'}</span></td>
+                <td><button class="btn btn-sm btn-edit" onclick="openProductModal(${p.id})">编辑</button>
+                <button class="btn btn-sm btn-delete" onclick="deleteItem('products', ${p.id})">删除</button></td>
+            </tr>
+        `).join('') || '<tr><td colspan="8" style="text-align:center;color:#9ca3af">暂无数据</td></tr>';
+    }
+}
+
+async function loadInventory() {
+    const stores = await api('GET', '/api/v1/stores/?skip=0&limit=500');
+    if (stores && document.getElementById('inventoryStore').options.length <= 1) {
+        stores.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id; opt.textContent = s.name;
+            document.getElementById('inventoryStore').appendChild(opt);
+        });
+    }
+    
+    const storeId = document.getElementById('inventoryStore')?.value || '';
+    const url = storeId ? `/api/v1/inventory/?store_id=${storeId}` : '/api/v1/inventory/';
+    const inventory = await api('GET', url);
+    
+    if (inventory) {
+        const tbody = document.querySelector('#inventoryTable tbody');
+        tbody.innerHTML = inventory.map(i => `
+            <tr>
+                <td>商品#${i.product_id}</td><td>门店#${i.store_id}</td>
+                <td>${i.quantity}</td><td>${i.warning_quantity}</td>
+                <td>${i.last_restock_date ? new Date(i.last_restock_date).toLocaleDateString() : '-'}</td>
+                <td><button class="btn btn-sm btn-success" onclick="adjustStock(${i.store_id}, ${i.product_id})">调整</button></td>
+            </tr>
+        `).join('') || '<tr><td colspan="6" style="text-align:center;color:#9ca3af">暂无数据</td></tr>';
+    }
+}
+
+async function loadLowStock() {
+    const lowStock = await api('GET', '/api/v1/inventory/low-stock');
+    if (lowStock) {
+        alert(`库存预警商品数量: ${lowStock.length}`);
+    }
+}
+
+async function loadOrders() {
+    const stores = await api('GET', '/api/v1/stores/?skip=0&limit=500');
+    if (stores && document.getElementById('orderStore').options.length <= 1) {
+        stores.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id; opt.textContent = s.name;
+            document.getElementById('orderStore').appendChild(opt);
+        });
+    }
+    
+    const storeId = document.getElementById('orderStore')?.value || '';
+    const status = document.getElementById('orderStatus')?.value || '';
+    let url = '/api/v1/orders/?skip=0&limit=100';
+    if (storeId) url += `&store_id=${storeId}`;
+    if (status) url += `&status=${status}`;
+    
+    const orders = await api('GET', url);
+    if (orders) {
+        const tbody = document.querySelector('#ordersTable tbody');
+        tbody.innerHTML = orders.map(o => `
+            <tr>
+                <td>${o.order_no}</td><td>门店#${o.store_id}</td>
+                <td>¥${o.final_amount.toFixed(2)}</td><td>${o.pay_method}</td>
+                <td><span class="badge ${o.status === 'completed' ? 'badge-success' : 'badge-warning'}">${o.status}</span></td>
+                <td>${new Date(o.created_at).toLocaleString('zh-CN')}</td>
+                <td><button class="btn btn-sm btn-edit" onclick="viewOrder(${o.id})">查看</button></td>
+            </tr>
+        `).join('') || '<tr><td colspan="7" style="text-align:center;color:#9ca3af">暂无数据</td></tr>';
+    }
+}
+
+async function loadMembers() {
+    const keyword = document.getElementById('memberSearch')?.value || '';
+    const members = await api('GET', `/api/v1/members/?skip=0&limit=500&keyword=${keyword}`);
+    if (members) {
+        const tbody = document.querySelector('#membersTable tbody');
+        tbody.innerHTML = members.map(m => `
+            <tr>
+                <td>${m.member_no}</td><td>${m.name || '-'}</td><td>${m.phone}</td>
+                <td><span class="badge badge-info">${m.level}</span></td>
+                <td>${m.points}</td><td>¥${m.balance.toFixed(2)}</td>
+                <td>¥${m.total_spent.toFixed(2)}</td>
+                <td><button class="btn btn-sm btn-edit" onclick="openMemberModal(${m.id})">编辑</button>
+                <button class="btn btn-sm btn-success" onclick="addPoints(${m.id})">积分</button></td>
+            </tr>
+        `).join('') || '<tr><td colspan="8" style="text-align:center;color:#9ca3af">暂无数据</td></tr>';
+    }
+}
+
+async function loadSuppliers() {
+    const keyword = document.getElementById('supplierSearch')?.value || '';
+    const suppliers = await api('GET', `/api/v1/suppliers/?skip=0&limit=500&keyword=${keyword}`);
+    if (suppliers) {
+        const tbody = document.querySelector('#suppliersTable tbody');
+        tbody.innerHTML = suppliers.map(s => `
+            <tr>
+                <td>${s.name}</td><td>${s.contact_person || '-'}</td>
+                <td>${s.phone || '-'}</td><td>${s.address || '-'}</td>
+                <td>${s.supply_category || '-'}</td>
+                <td><span class="badge ${s.status ? 'badge-success' : 'badge-danger'}">${s.status ? '合作中' : '已终止'}</span></td>
+                <td><button class="btn btn-sm btn-edit" onclick="openSupplierModal(${s.id})">编辑</button>
+                <button class="btn btn-sm btn-delete" onclick="deleteItem('suppliers', ${s.id})">删除</button></td>
+            </tr>
+        `).join('') || '<tr><td colspan="7" style="text-align:center;color:#9ca3af">暂无数据</td></tr>';
+    }
+}
+
+async function loadEmployees() {
+    const keyword = document.getElementById('employeeSearch')?.value || '';
+    const stores = await api('GET', '/api/v1/stores/?skip=0&limit=500');
+    if (stores && document.getElementById('employeeStore').options.length <= 1) {
+        stores.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id; opt.textContent = s.name;
+            document.getElementById('employeeStore').appendChild(opt);
+        });
+    }
+    const storeId = document.getElementById('employeeStore')?.value || '';
+    const url = storeId ? `/api/v1/employees/?skip=0&limit=500&store_id=${storeId}` : `/api/v1/employees/?skip=0&limit=500&keyword=${keyword}`;
+    const employees = await api('GET', url);
+    if (employees) {
+        const tbody = document.querySelector('#employeesTable tbody');
+        tbody.innerHTML = employees.map(e => `
+            <tr>
+                <td>${e.name}</td><td>${e.phone || '-'}</td>
+                <td>${e.position || '-'}</td><td>${e.department || '-'}</td>
+                <td>门店#${e.store_id || '-'}</td>
+                <td>${e.entry_date ? new Date(e.entry_date).toLocaleDateString('zh-CN') : '-'}</td>
+                <td><button class="btn btn-sm btn-edit" onclick="openEmployeeModal(${e.id})">编辑</button>
+                <button class="btn btn-sm btn-delete" onclick="deleteItem('employees', ${e.id})">删除</button></td>
+            </tr>
+        `).join('') || '<tr><td colspan="7" style="text-align:center;color:#9ca3af">暂无数据</td></tr>';
+    }
+}
+
+async function loadMarketing() {
+    const promotions = await api('GET', '/api/v1/marketing/promotions?skip=0&limit=100');
+    const coupons = await api('GET', '/api/v1/marketing/coupons?skip=0&limit=100');
+    
+    if (promotions) {
+        const tbody = document.querySelector('#promotionsTable tbody');
+        tbody.innerHTML = promotions.map(p => `
+            <tr>
+                <td>${p.name}</td><td>${p.type}</td>
+                <td>${(p.discount_rate * 10).toFixed(1)}折</td>
+                <td>${new Date(p.start_date).toLocaleDateString()} - ${new Date(p.end_date).toLocaleDateString()}</td>
+                <td><span class="badge ${p.status ? 'badge-success' : 'badge-danger'}">${p.status ? '进行中' : '已结束'}</span></td>
+                <td><button class="btn btn-sm btn-edit" onclick="openPromotionModal(${p.id})">编辑</button></td>
+            </tr>
+        `).join('') || '<tr><td colspan="6" style="text-align:center">暂无数据</td></tr>';
+    }
+    
+    if (coupons) {
+        const tbody = document.querySelector('#couponsTable tbody');
+        tbody.innerHTML = coupons.map(c => `
+            <tr>
+                <td>${c.name}</td><td>${c.type}</td>
+                <td>¥${c.value}</td><td>满${c.min_amount}可用</td>
+                <td>${c.used_count}/${c.total_count}</td>
+                <td><span class="badge ${c.status ? 'badge-success' : 'badge-danger'}">${c.status ? '有效' : '失效'}</span></td>
+            </tr>
+        `).join('') || '<tr><td colspan="6" style="text-align:center">暂无数据</td></tr>';
+    }
+}
+
+async function loadLossRecords() {
+    const stores = await api('GET', '/api/v1/stores/?skip=0&limit=500');
+    if (stores && document.getElementById('lossStore').options.length <= 1) {
+        stores.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s.id; opt.textContent = s.name;
+            document.getElementById('lossStore').appendChild(opt);
+        });
+    }
+    
+    const storeId = document.getElementById('lossStore')?.value || '';
+    const url = storeId ? `/api/v1/loss/?store_id=${storeId}` : '/api/v1/loss/';
+    const records = await api('GET', url);
+    
+    if (records) {
+        const tbody = document.querySelector('#lossTable tbody');
+        tbody.innerHTML = records.map(r => `
+            <tr>
+                <td>${r.product_name || '-'}</td><td>门店#${r.store_id}</td>
+                <td>${r.quantity}</td><td>${r.reason}</td>
+                <td>¥${r.amount.toFixed(2)}</td><td>操作员#${r.handler_id || '-'}</td>
+                <td>${new Date(r.created_at).toLocaleString('zh-CN')}</td>
+                <td><button class="btn btn-sm btn-delete" onclick="deleteItem('loss', ${r.id})">删除</button></td>
+            </tr>
+        `).join('') || '<tr><td colspan="8" style="text-align:center;color:#9ca3af">暂无数据</td></tr>';
+    }
+}
+
+async function showLossStats() {
+    const stats = await api('GET', '/api/v1/loss/stats');
+    if (stats) {
+        alert(`损耗统计:\n总记录: ${stats.total_records}\n总数量: ${stats.total_quantity}\n总金额: ¥${stats.total_amount.toFixed(2)}`);
+    }
+}
+
+async function loadTraceability() {
+    const keyword = document.getElementById('traceSearch')?.value || '';
+    const records = await api('GET', '/api/v1/traceability/?skip=0&limit=500');
+    if (records) {
+        const filtered = keyword ? records.filter(r => (r.batch_no || '').includes(keyword) || (r.product_name || '').includes(keyword)) : records;
+        const tbody = document.querySelector('#traceTable tbody');
+        tbody.innerHTML = filtered.map(r => `
+            <tr>
+                <td>${r.product_name || '-'}</td><td>${r.batch_no || '-'}</td>
+                <td>${r.origin || '-'}</td><td>${r.supplier || '-'}</td>
+                <td>${r.harvest_date ? new Date(r.harvest_date).toLocaleDateString() : '-'}</td>
+                <td>${r.arrival_date ? new Date(r.arrival_date).toLocaleDateString() : '-'}</td>
+                <td><span class="badge ${r.status === 'normal' ? 'badge-success' : 'badge-warning'}">${r.status}</span></td>
+                <td><button class="btn btn-sm btn-edit" onclick="viewTraceChain(${r.id})">溯源链</button></td>
+            </tr>
+        `).join('') || '<tr><td colspan="8" style="text-align:center;color:#9ca3af">暂无数据</td></tr>';
+    }
+}
+
+async function loadUsers() {
+    const users = await api('GET', '/api/v1/users/?skip=0&limit=500');
+    if (users) {
+        const tbody = document.querySelector('#usersTable tbody');
+        tbody.innerHTML = users.map(u => `
+            <tr>
+                <td>${u.username}</td><td>${u.real_name}</td>
+                <td>${u.phone || '-'}</td>
+                <td><span class="badge badge-info">${u.role}</span></td>
+                <td>门店#${u.store_id || '-'}</td>
+                <td><span class="badge ${u.is_active ? 'badge-success' : 'badge-danger'}">${u.is_active ? '正常' : '禁用'}</span></td>
+                <td><button class="btn btn-sm btn-edit" onclick="openUserModal(${u.id})">编辑</button></td>
+            </tr>
+        `).join('') || '<tr><td colspan="7" style="text-align:center;color:#9ca3af">暂无数据</td></tr>';
+    }
+}
+
+function openStoreModal(id = null) {
+    editingId = id;
+    modalConfig = {
+        title: id ? '编辑门店' : '新增门店',
+        fields: [
+            { name: 'name', label: '门店名称', value: '' },
+            { name: 'code', label: '门店编号', value: '' },
+            { name: 'address', label: '地址', value: '' },
+            { name: 'phone', label: '电话', value: '' },
+            { name: 'manager', label: '经理', value: '' },
+            { name: 'area', label: '面积(㎡)', type: 'number', value: '0' }
+        ],
+        endpoint: 'stores'
+    };
+    if (id) {
+        api('GET', `/api/v1/stores/${id}`).then(data => {
+            if (data) {
+                modalConfig.fields.forEach(f => f.value = data[f.name] || '');
+                showModal();
+            }
+        });
+    } else {
+        showModal();
+    }
+}
+
+function openProductModal(id = null) {
+    editingId = id;
+    modalConfig = {
+        title: id ? '编辑商品' : '新增商品',
+        fields: [
+            { name: 'name', label: '商品名称', value: '' },
+            { name: 'code', label: '商品编码', value: '' },
+            { name: 'barcode', label: '条码', value: '' },
+            { name: 'category', label: '分类', value: '' },
+            { name: 'unit', label: '单位', value: 'kg' },
+            { name: 'price', label: '售价', type: 'number', value: '0' },
+            { name: 'cost_price', label: '成本价', type: 'number', value: '0' },
+            { name: 'stock', label: '库存', type: 'number', value: '0' },
+            { name: 'min_stock', label: '最低库存', type: 'number', value: '0' },
+            { name: 'max_stock', label: '最大库存', type: 'number', value: '0' },
+            { name: 'description', label: '描述', type: 'textarea', value: '' }
+        ],
+        endpoint: 'products'
+    };
+    if (id) {
+        api('GET', `/api/v1/products/${id}`).then(data => {
+            if (data) {
+                modalConfig.fields.forEach(f => f.value = data[f.name] || '');
+                showModal();
+            }
+        });
+    } else {
+        showModal();
+    }
+}
+
+function openMemberModal(id = null) {
+    editingId = id;
+    modalConfig = {
+        title: id ? '编辑会员' : '新增会员',
+        fields: [
+            { name: 'name', label: '姓名', value: '' },
+            { name: 'phone', label: '手机号', value: '' },
+            { name: 'level', label: '等级', type: 'select', options: ['normal', 'silver', 'gold', 'diamond'], value: 'normal' },
+            { name: 'store_id', label: '所属门店', type: 'number', value: '' }
+        ],
+        endpoint: 'members'
+    };
+    if (id) {
+        api('GET', `/api/v1/members/${id}`).then(data => {
+            if (data) {
+                modalConfig.fields.forEach(f => f.value = data[f.name] ?? '');
+                showModal();
+            }
+        });
+    } else {
+        showModal();
+    }
+}
+
+function openSupplierModal(id = null) {
+    editingId = id;
+    modalConfig = {
+        title: id ? '编辑供应商' : '新增供应商',
+        fields: [
+            { name: 'name', label: '供应商名称', value: '' },
+            { name: 'contact_person', label: '联系人', value: '' },
+            { name: 'phone', label: '电话', value: '' },
+            { name: 'address', label: '地址', value: '' },
+            { name: 'supply_category', label: '供应品类', value: '' }
+        ],
+        endpoint: 'suppliers'
+    };
+    if (id) {
+        api('GET', `/api/v1/suppliers/${id}`).then(data => {
+            if (data) {
+                modalConfig.fields.forEach(f => f.value = data[f.name] || '');
+                showModal();
+            }
+        });
+    } else {
+        showModal();
+    }
+}
+
+function openEmployeeModal(id = null) {
+    editingId = id;
+    modalConfig = {
+        title: id ? '编辑员工' : '新增员工',
+        fields: [
+            { name: 'name', label: '姓名', value: '' },
+            { name: 'phone', label: '电话', value: '' },
+            { name: 'position', label: '职位', value: '' },
+            { name: 'department', label: '部门', value: '' },
+            { name: 'store_id', label: '门店ID', type: 'number', value: '' }
+        ],
+        endpoint: 'employees'
+    };
+    if (id) {
+        api('GET', `/api/v1/employees/${id}`).then(data => {
+            if (data) {
+                modalConfig.fields.forEach(f => f.value = data[f.name] ?? '');
+                showModal();
+            }
+        });
+    } else {
+        showModal();
+    }
+}
+
+function openPromotionModal(id = null) {
+    editingId = id;
+    modalConfig = {
+        title: id ? '编辑促销' : '新增促销',
+        fields: [
+            { name: 'name', label: '活动名称', value: '' },
+            { name: 'type', label: '类型', type: 'select', options: ['discount', 'full_reduction', 'gift'], value: 'discount' },
+            { name: 'discount_rate', label: '折扣率', type: 'number', value: '1.0' },
+            { name: 'start_date', label: '开始日期', type: 'date', value: '' },
+            { name: 'end_date', label: '结束日期', type: 'date', value: '' }
+        ],
+        endpoint: 'marketing/promotions'
+    };
+    if (id) {
+        api('GET', `/api/v1/marketing/promotions?skip=0&limit=100`).then(data => {
+            const promo = data?.find(p => p.id === id);
+            if (promo) {
+                modalConfig.fields.forEach(f => f.value = promo[f.name] ?? '');
+            }
+            showModal();
+        });
+    } else {
+        showModal();
+    }
+}
+
+function openCouponModal() {
+    editingId = null;
+    modalConfig = {
+        title: '新增优惠券',
+        fields: [
+            { name: 'name', label: '优惠券名称', value: '' },
+            { name: 'type', label: '类型', type: 'select', options: ['cash', 'discount'], value: 'cash' },
+            { name: 'value', label: '面值', type: 'number', value: '0' },
+            { name: 'min_amount', label: '最低消费', type: 'number', value: '0' },
+            { name: 'total_count', label: '发放数量', type: 'number', value: '0' },
+            { name: 'start_date', label: '开始日期', type: 'date', value: '' },
+            { name: 'end_date', label: '结束日期', type: 'date', value: '' }
+        ],
+        endpoint: 'marketing/coupons'
+    };
+    showModal();
+}
+
+function openLossModal() {
+    editingId = null;
+    modalConfig = {
+        title: '新增损耗记录',
+        fields: [
+            { name: 'store_id', label: '门店ID', type: 'number', value: '' },
+            { name: 'product_id', label: '商品ID', type: 'number', value: '' },
+            { name: 'product_name', label: '商品名称', value: '' },
+            { name: 'quantity', label: '损耗数量', type: 'number', value: '0' },
+            { name: 'reason', label: '损耗原因', value: '过期' },
+            { name: 'amount', label: '损耗金额', type: 'number', value: '0' },
+            { name: 'remark', label: '备注', value: '' }
+        ],
+        endpoint: 'loss'
+    };
+    showModal();
+}
+
+function openTraceModal(id = null) {
+    editingId = id;
+    modalConfig = {
+        title: id ? '编辑溯源' : '新增溯源记录',
+        fields: [
+            { name: 'product_id', label: '商品ID', type: 'number', value: '' },
+            { name: 'product_name', label: '商品名称', value: '' },
+            { name: 'batch_no', label: '批次号', value: '' },
+            { name: 'origin', label: '产地', value: '' },
+            { name: 'supplier', label: '供应商', value: '' },
+            { name: 'harvest_date', label: '采收日期', type: 'date', value: '' },
+            { name: 'arrival_date', label: '到货日期', type: 'date', value: '' },
+            { name: 'storage_condition', label: '储存条件', value: '' }
+        ],
+        endpoint: 'traceability'
+    };
+    if (id) {
+        api('GET', `/api/v1/traceability/${id}`).then(data => {
+            if (data) {
+                modalConfig.fields.forEach(f => f.value = data[f.name] ?? '');
+                showModal();
+            }
+        });
+    } else {
+        showModal();
+    }
+}
+
+function openUserModal(id = null) {
+    editingId = id;
+    modalConfig = {
+        title: id ? '编辑用户' : '新增用户',
+        fields: [
+            { name: 'username', label: '用户名', value: '' },
+            { name: 'real_name', label: '姓名', value: '' },
+            { name: 'password', label: '密码', type: 'password', value: '' },
+            { name: 'phone', label: '电话', value: '' },
+            { name: 'email', label: '邮箱', value: '' },
+            { name: 'role', label: '角色', type: 'select', options: ['admin', 'cashier', 'manager'], value: 'cashier' },
+            { name: 'store_id', label: '门店ID', type: 'number', value: '' }
+        ],
+        endpoint: 'users'
+    };
+    if (id) {
+        api('GET', `/api/v1/users/${id}`).then(data => {
+            if (data) {
+                modalConfig.fields.forEach(f => f.value = data[f.name] ?? '');
+                const pwdField = modalConfig.fields.find(f => f.name === 'password');
+                if (pwdField) pwdField.value = '';
+                showModal();
+            }
+        });
+    } else {
+        showModal();
+    }
+}
+
+function showModal() {
+    document.getElementById('modalTitle').textContent = modalConfig.title;
+    const body = document.getElementById('modalBody');
+    body.innerHTML = modalConfig.fields.map(f => {
+        let input = '';
+        if (f.type === 'textarea') {
+            input = `<textarea data-name="${f.name}">${f.value || ''}</textarea>`;
+        } else if (f.type === 'select') {
+            input = `<select data-name="${f.name}">${f.options.map(o => `<option value="${o}" ${f.value === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
+        } else {
+            input = `<input type="${f.type || 'text'}" data-name="${f.name}" value="${f.value || ''}">`;
+        }
+        return `<div class="form-group"><label>${f.label}</label>${input}</div>`;
+    }).join('');
+    document.getElementById('modal').classList.add('show');
+}
+
+function closeModal() {
+    document.getElementById('modal').classList.remove('show');
+    modalConfig = null;
+    editingId = null;
+}
+
+async function saveModal() {
+    if (!modalConfig) return;
+    const data = {};
+    document.querySelectorAll('#modalBody [data-name]').forEach(el => {
+        data[el.dataset.name] = el.value;
+    });
+    
+    let url = `/api/v1/${modalConfig.endpoint}`;
+    let method = 'POST';
+    
+    if (editingId) {
+        method = 'PUT';
+        url += `/${editingId}`;
+    }
+    
+    const result = await api(method, url, data);
+    if (result) {
+        closeModal();
+        loadPageData(currentPage);
+    }
+}
+
+async function deleteItem(endpoint, id) {
+    if (!confirm('确认删除？')) return;
+    await api('DELETE', `/api/v1/${endpoint}/${id}`);
+    loadPageData(currentPage);
+}
+
+function addPoints(memberId) {
+    const points = prompt('请输入要增加的积分数量:');
+    if (points) {
+        api('POST', `/api/v1/members/${memberId}/points?points=${points}`).then(() => {
+            loadMembers();
+        });
+    }
+}
+
+function adjustStock(storeId, productId) {
+    const qty = prompt('请输入调整数量(正数入库,负数出库):');
+    if (qty) {
+        const type = parseInt(qty) > 0 ? 'in' : 'out';
+        api('POST', `/api/v1/inventory/adjust?store_id=${storeId}&product_id=${productId}&quantity=${Math.abs(qty)}&record_type=${type}`).then(() => {
+            loadInventory();
+        });
+    }
+}
+
+function viewOrder(orderId) {
+    window.open(`/api/docs`, '_blank');
+}
+
+function viewTraceChain(traceId) {
+    api('GET', `/api/v1/traceability/${traceId}/chain`).then(data => {
+        if (data) {
+            alert(`溯源链:\n${data.traceability.product_name} - 批次${data.traceability.batch_no}\n步骤数: ${data.steps?.length || 0}`);
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (authToken) {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('adminLayout').style.display = 'block';
+        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        document.getElementById('userName').textContent = userInfo.real_name || userInfo.username || '';
+        initDashboard();
+    }
+});
+</script>
+
+</body>
+</html>
